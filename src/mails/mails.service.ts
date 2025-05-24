@@ -12,7 +12,7 @@ export class MailsService {
       secure: false, // true для 465, false для інших портів
       auth: {
         user: 'thorykb@gmail.com', // Ваш email
-        pass: 'milt pbzg lzhk foxt', // Ваш пароль або app-specific пароль
+        pass: 'bhsa xzrz sghh zixt', // Ваш пароль або app-specific пароль
       },
       tls: {
         rejectUnauthorized: false, // This allows self-signed certificates

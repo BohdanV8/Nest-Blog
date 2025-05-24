@@ -6,6 +6,7 @@ CREATE TABLE "User" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "hobby" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'user',
     "isActivated" BOOLEAN NOT NULL DEFAULT false,
     "activationLink" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -84,6 +85,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_activationLink_key" ON "User"("activationLink");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Token_userId_key" ON "Token"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Token_refreshToken_key" ON "Token"("refreshToken");

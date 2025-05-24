@@ -1,26 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { CreateFileDto } from './dto/create-file.dto';
 import { UpdateFileDto } from './dto/update-file.dto';
-
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { PrismaService } from 'src/prisma.service';
 @Injectable()
 export class FilesService {
-  create(createFileDto: CreateFileDto) {
-    return 'This action adds a new file';
+  constructor(private readonly prisma: PrismaService) {}
+  getAvatarStorage() {
+    return diskStorage({
+      destination: '../uploads/avatars',
+      filename: (req, file, callback) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname);
+        const filename = `${file.originalname}-${uniqueSuffix}${ext}`;
+        callback(null, filename);
+      },
+    });
   }
 
-  findAll() {
-    return `This action returns all files`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} file`;
-  }
-
-  update(id: number, updateFileDto: UpdateFileDto) {
-    return `This action updates a #${id} file`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} file`;
+  getPostsMediaStorage() {
+    return diskStorage({
+      destination: '../uploads/posts',
+      filename: (req, file, callback) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname);
+        const filename = `${file.originalname}-${uniqueSuffix}${ext}`;
+        callback(null, filename);
+      },
+    });
   }
 }

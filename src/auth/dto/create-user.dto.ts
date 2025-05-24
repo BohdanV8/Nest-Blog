@@ -6,6 +6,7 @@ export class CreateUserDto {
   password: string
   firstName: string;
   lastName: string;
-  hobby: string;
-  role: string
+  hobby?: string;
+  role?: string;
+  photo?: string
 }

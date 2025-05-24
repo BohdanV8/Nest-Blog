@@ -19,10 +19,11 @@ model User {
   password       String
   firstName      String
   lastName       String
-  hobby          String
-  role           String
+  hobby          String?
+  role           String   @default("user")
   isActivated    Boolean  @default(false)
   activationLink String   @unique
+  photo          String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

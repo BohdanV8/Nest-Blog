@@ -3,16 +3,39 @@ import { AuthService } from './auth.service';
 import { Post, Body, Res, Req, Param, Get } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('registration')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          const filename = `${file.fieldname}-${uniqueSuffix}${ext}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
   async registration(
+    @UploadedFile() file: Express.Multer.File,
     @Body() createUserDto: CreateUserDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const userData = await this.authService.registration(createUserDto);
+    const filePath = `uploads/${file.filename}`;
+    const userData = await this.authService.registration({
+      ...createUserDto,
+      photo: filePath,
+    });
     response.cookie('refreshToken', userData.refreshToken, {
       httpOnly: true,
       maxAge: 20 * 24 * 60 * 60 * 1000,
@@ -45,7 +68,10 @@ export class AuthController {
   }
 
   @Get('/activate/:link')
-  async activateLink(@Param('link') link: string, @Res({ passthrough: true }) response: Response,) {
+  async activateLink(
+    @Param('link') link: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const userData = await this.authService.activate(link);
     response.cookie('refreshToken', userData.refreshToken, {
       httpOnly: true,
@@ -54,7 +80,7 @@ export class AuthController {
     return userData;
   }
 
-  @Post('refresh')
+  @Get('refresh')
   async refresh(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
