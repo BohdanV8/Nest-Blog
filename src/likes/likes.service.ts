@@ -25,6 +25,14 @@ export class LikesService {
     });
   }
 
+  findPostsLikes(postId: number) {
+    return this.prisma.like.findMany({
+      where: {
+        postId
+      }
+    })
+  }
+
   update(id: number, updateLikeDto: UpdateLikeDto) {
     return this.prisma.like.update({
       where: {

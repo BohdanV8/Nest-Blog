@@ -14,7 +14,10 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { Roles } from 'src/customDecorators/roles.decorator';
-import { AddCategoryDto } from './dto/add-category.dto';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 @Controller('posts')
 @UseGuards(AuthGuard, RolesGuard)
 export class PostsController {
@@ -22,14 +25,42 @@ export class PostsController {
 
   @Post('create')
   @Roles('user', 'admin')
-  create(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.create(createPostDto);
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          const filename = `${file.fieldname}-${uniqueSuffix}${ext}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
+  async create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createPostDto: CreatePostDto,
+  ) {
+    const filePath = `uploads/${file.filename}`;
+    const postData = await this.postsService.create({
+      ...createPostDto,
+      authorId: +createPostDto.authorId,
+      photo: filePath,
+    });
+    return postData;
   }
 
   @Get()
   @Roles('user', 'admin')
   findAll() {
     return this.postsService.findAll();
+  }
+  @Get('findUserPosts')
+  @Roles('user', 'admin')
+  async findUserPosts(@Body() authorId: number) {
+    return this.postsService.findUserPosts(authorId)
   }
 
   @Get(':id')
@@ -48,15 +79,5 @@ export class PostsController {
   @Roles('user', 'admin')
   remove(@Param('id') id: string) {
     return this.postsService.remove(+id);
-  }
-
-  @Post('addCategory')
-  @Roles('user', 'admin')
-  addCategory(@Body() body: AddCategoryDto) {
-    return this.postsService.addCategory(body)
-  }
-
-  removeCategory(@Param('id') id: string) {
-    this.postsService.removeCategory(+id);
   }
 }
